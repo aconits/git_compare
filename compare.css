@@ -63,11 +63,16 @@ td {
 	border-spacing:0;
 }
 
+.line_number::before {
+	content:attr(data-line-number);
+}
+
 .line_number {
 	width:1%;
 	font-size:12px;
 	text-align:right;
 	border-right:1px solid #eee;
+	color:rgba(0, 0, 0, 0.3);
 }
 
 .separate_line{

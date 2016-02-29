@@ -54,9 +54,15 @@ function _getModificationOfFile(&$Tab, $diff_file)
 		
 		if ($line[0] == '@' && $line[1] == '@')
 		{
-			// @@ -47,7 +47,8 @@ $specialtostring=array(0=>'common', 1=>'interfaces', 2=>'other', 3=>'functional'
 			$indice_line_modified = htmlentities($line);
 			$TRes[$title][$indice_line_modified] = array();
+			
+			// @@ -47,7 +47,8 @@ $specialtostring=array(0=>'common', 1=>'interfaces', 2=>'other', 3=>'functional'
+			$str = substr($line, 3, strpos($line, '@@', 2)-3); // Récupération de : [-47,7 +47,8]
+			preg_match_all('/(\+|-)[0-9]*/', $line, $TMatch); // $TMatch[0] = array(-47, +47)
+			
+			$i_a = abs($TMatch[0][0]);
+			$i_b = abs($TMatch[0][1]);
 		}
 		else 
 		{
@@ -64,18 +70,21 @@ function _getModificationOfFile(&$Tab, $diff_file)
 			$line = str_replace(' ', '&nbsp;', $line);
 			
 			// TODO à perfectionner car les lignes modifiés ne sont pas au même niveau en affichage 
-			// @@ -72,8 +76,19 @@ 
 			if ($line[0] == '-')
 			{
-				$TRes[$title][$indice_line_modified][] = array('a' => $line, 'b' => '');
+				$TRes[$title][$indice_line_modified][] = array('line_number_a' => $i_a, 'line_number_b' => $i_b, 'a' => $line, 'b' => '');
+				$i_a++;
 			}
 			elseif ($line[0] == '+')
 			{
-				$TRes[$title][$indice_line_modified][] = array('a' => '', 'b' => $line);
+				$TRes[$title][$indice_line_modified][] = array('line_number_a' => $i_a, 'line_number_b' => $i_b, 'a' => '', 'b' => $line);
+				$i_b++;
 			}
 			else
 			{
-				$TRes[$title][$indice_line_modified][] = array('a' => $line, 'b' => $line);
+				$TRes[$title][$indice_line_modified][] = array('line_number_a' => $i_a, 'line_number_b' => $i_b, 'a' => $line, 'b' => $line);
+				$i_a++;
+				$i_b++;
 			}	
 		}
 	}
@@ -128,8 +137,8 @@ function _printTLine(&$TLine)
 							if (empty($TVal['b'])) { $class_td_a .= ' line_deleted'; 	$class_td_b .= ' empty_cell'; 	$class_line_number_a = ' line_num_deleted'; }
 							
 							$str .= '<tr>';
-							$str .= '<td class="line_number'.$class_line_number_a.'">&nbsp;</td><td class="'.$class_td_a.'">'.$TVal['a'].'</td>';
-							$str .= '<td class="line_number separate_line'.$class_line_number_b.'">&nbsp;</td><td class="'.$class_td_b.'">'.$TVal['b'].'</td>';
+							$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'">'.$TVal['a'].'</td>';
+							$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'">'.$TVal['b'].'</td>';
 							$str .= '</tr>';
 						}	
 					}
