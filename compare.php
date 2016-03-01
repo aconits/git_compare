@@ -23,30 +23,24 @@ if ($handle)
 		}
 		
 	}
-	
+
+	//$t1 = microtime(true);	
 	foreach ($TData as $diff_file => &$Tab)
 	{
 		$TLine[] = _getModificationOfFile($Tab, $diff_file);
 	}
-$t1 = microtime(true);
+
+	//$t2 = microtime(true);	
 	_printTLine($TLine); 
 	
-$t2 = microtime(true);	
 	fclose($handle);
 }
-
-
-
-print '<br /><br /><br /><p>';
-print $t1.'<br />';
-print $t2.'<br />';
-print ($t2-$t1).'<br /> PHF</p>';
 
 function _getModificationOfFile(&$Tab, $diff_file)
 {
 	$TRes = array();
 	$title = _cleanTitle($diff_file);
-	
+
 	foreach ($Tab as $i => &$line)
 	{
 		if ($i <= 2) continue; // ignore
@@ -54,6 +48,9 @@ function _getModificationOfFile(&$Tab, $diff_file)
 		
 		if ($line[0] == '@' && $line[1] == '@')
 		{
+			$index = 0;
+			$index_start_delete = null;
+			
 			$indice_line_modified = htmlentities($line);
 			$TRes[$title][$indice_line_modified] = array();
 			
@@ -61,31 +58,47 @@ function _getModificationOfFile(&$Tab, $diff_file)
 			$str = substr($line, 3, strpos($line, '@@', 2)-3); // Récupération de : [-47,7 +47,8]
 			preg_match_all('/(\+|-)[0-9]*/', $line, $TMatch); // $TMatch[0] = array(-47, +47)
 			
-			$i_a = abs($TMatch[0][0]);
-			$i_b = abs($TMatch[0][1]);
+			$line_number_a = abs($TMatch[0][0]);
+			$line_number_b = abs($TMatch[0][1]);
 		}
 		else 
 		{
 			$line = htmlentities($line);
-			$line = str_replace(' ', '&nbsp;', $line);
 			
-			// TODO à perfectionner car les lignes modifiés ne sont pas au même niveau en affichage 
-			if ($line[0] == '-')
+			if ($line[0] == '-') // Ligne supprimée sur branch A
 			{
-				$TRes[$title][$indice_line_modified][] = array('line_number_a' => $i_a, 'line_number_b' => $i_b, 'a' => $line, 'b' => '');
-				$i_a++;
+				if (is_null($index_start_delete)) $index_start_delete = $index;
+				$TRes[$title][$indice_line_modified][$index] = array('line_number_a' => $line_number_a, 'line_number_b' => '', 'a' => $line, 'b' => '', 'line_deleted' => true);
+				$line_number_a++;
+				$index++;
 			}
-			elseif ($line[0] == '+')
+			elseif ($line[0] == '+') // Ligne ajoutée sur branch B
 			{
-				$TRes[$title][$indice_line_modified][] = array('line_number_a' => $i_a, 'line_number_b' => $i_b, 'a' => '', 'b' => $line);
-				$i_b++;
+				if (is_null($index_start_delete)) $index_start_delete = $index;
+				if (!isset($TRes[$title][$indice_line_modified][$index_start_delete]['a']))
+				{
+					$TRes[$title][$indice_line_modified][$index_start_delete]['line_number_a'] = '';
+					$TRes[$title][$indice_line_modified][$index_start_delete]['a'] = '';
+				}
+
+				$TRes[$title][$indice_line_modified][$index_start_delete]['line_number_b'] = $line_number_b;
+				$TRes[$title][$indice_line_modified][$index_start_delete]['b'] = $line;
+				$TRes[$title][$indice_line_modified][$index_start_delete]['line_added'] = true;
+				
+				$line_number_b++;
+				$index_start_delete++;
+				
+				if ($index <= $index_start_delete) $index++;
 			}
-			else
+			else // Ligne commune
 			{
-				$TRes[$title][$indice_line_modified][] = array('line_number_a' => $i_a, 'line_number_b' => $i_b, 'a' => $line, 'b' => $line);
-				$i_a++;
-				$i_b++;
-			}	
+				$index_start_delete = null;
+				$TRes[$title][$indice_line_modified][$index] = array('line_number_a' => $line_number_a, 'line_number_b' => $line_number_b, 'a' => $line, 'b' => $line);
+				$line_number_a++;
+				$line_number_b++;
+				$index++;
+			}
+			
 		}
 	}
 	
@@ -132,6 +145,25 @@ function _printTLine(&$TLine)
 							$class_td_a = 'branch_a';
 							$class_line_number_b = '';
 							$class_td_b = 'branch_b';
+							//var_dump($TVal);
+							if (!empty($TVal['line_deleted'])) { $class_td_a .= ' line_deleted'; $class_line_number_a = ' line_num_deleted'; }
+							if (!empty($TVal['line_added'])) { $class_td_b .= ' line_added';  	$class_line_number_b = ' line_num_added'; }
+							
+							if (empty($TVal['a'])) { $class_line_number_a .= ' empty_cell'; $class_td_a .= ' empty_cell'; }
+							if (empty($TVal['b'])) { $class_line_number_b .= ' empty_cell'; $class_td_b .= ' empty_cell'; }
+							
+							$str .= '<tr>';
+							$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'">'.$TVal['a'].'</td>';
+							$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'">'.$TVal['b'].'</td>';
+							$str .= '</tr>';
+						}
+
+						/*foreach ($TBranch as &$TVal)
+						{
+							$class_line_number_a = '';
+							$class_td_a = 'branch_a';
+							$class_line_number_b = '';
+							$class_td_b = 'branch_b';
 							
 							if (empty($TVal['a'])) { $class_td_a .= ' empty_cell'; 		$class_td_b .= ' line_added';  	$class_line_number_b = ' line_num_added'; }
 							if (empty($TVal['b'])) { $class_td_a .= ' line_deleted'; 	$class_td_b .= ' empty_cell'; 	$class_line_number_a = ' line_num_deleted'; }
@@ -140,7 +172,7 @@ function _printTLine(&$TLine)
 							$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'">'.$TVal['a'].'</td>';
 							$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'">'.$TVal['b'].'</td>';
 							$str .= '</tr>';
-						}	
+						}*/
 					}
 					
 					if ($nb_sub_title == $i) $str .= '<tr class="diff_sub_title_end"><td colspan="1" class="line_number">&nbsp;</td><td colspan="3">&nbsp;</td></tr>';

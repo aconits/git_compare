@@ -3,7 +3,6 @@
 
 body {
 	margin: 0;
-	word-wrap: break-word;
 	font-size:13px;
 	background:#fff;
 }
@@ -53,6 +52,7 @@ td {
 .branch_a, .branch_b {
 	width:48%;
 	white-space:pre-wrap;
+	word-wrap: break-word;
 	-moz-tab-size:8;
 	-o-tab-size:8;
 	tab-size:8;
