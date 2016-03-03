@@ -1,3 +1,4 @@
+<?php
 /*
  * Copyright (C) 2016 Pierre-Henry Favre <phf@atm-consulting.fr>
  *
@@ -15,9 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-<?php
-
+ 
 $srcFile = '/var/www/html/compare/test.diff';
 
 $handle = fopen($srcFile, 'r');
