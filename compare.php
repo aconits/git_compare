@@ -17,6 +17,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
+ //require 'color.class.php';
+/*$TDir = array('/var/www/html/');
+$TGitDir = array();
+$t1 = microtime(true);
+foreach ($TDir as $dir)
+{
+	$TSubDir = scandir($dir);
+	foreach ($TSubDir as $sub_dir)
+	{
+		if ($sub_dir == '.' || $sub_dir == '..') continue;
+		if (is_dir($dir.$sub_dir))
+		{
+			echo $sub_dir.'<br />';
+			
+			//chdir($dir.$sub_dir);
+			
+			exec('cd '.$dir.$sub_dir.' && ')
+			
+			$TGitDir[$sub_dir] = $dir.$sub_dir;
+			
+		}
+	}
+	
+}
+
+
+echo '<select><option value=""></option>';
+foreach ($TGitDir as $dir_name => $fullpath)
+{
+	echo '<option value="'.$fullpath.'">'.$dir_name.'</option>';
+}
+echo '</select>';
+
+$t2 = microtime(true);
+echo '<br /><br />'.($t2-$t1);
+exit;*/
+
 $srcFile = '/var/www/html/compare/test.diff';
 
 $handle = fopen($srcFile, 'r');
@@ -118,6 +155,82 @@ function _getModificationOfFile(&$Tab, $diff_file)
 				$index++;
 			}
 			
+		}
+	}
+	
+	return $TRes;
+}
+
+// Ce base sur un diff avec --word-diff
+function _getModificationOfFile2(&$Tab, $diff_file)
+{
+	$TRes = array();
+	$title = _cleanTitle($diff_file);
+
+	foreach ($Tab as $i => &$line)
+	{
+		if ($i <= 2) continue; // ignore
+		if (($line[0] == '-' && $line[1] == '-' && $line[2] == '-') || ($line[0] == '+' && $line[1] == '+' && $line[2] == '+')) continue;
+		
+		if ($line[0] == '@' && $line[1] == '@')
+		{
+			$index = 0;
+			$index_start_delete = null;
+			
+			$indice_line_modified = htmlentities($line);
+			$TRes[$title][$indice_line_modified] = array();
+			
+			// @@ -47,7 +47,8 @@ $specialtostring=array(0=>'common', 1=>'interfaces', 2=>'other', 3=>'functional'
+			$str = substr($line, 3, strpos($line, '@@', 2)-3); // Récupération de : [-47,7 +47,8]
+			preg_match_all('/(\+|-)[0-9]*/', $line, $TMatch); // $TMatch[0] = array(-47, +47)
+			
+			$line_number_a = abs($TMatch[0][0]);
+			$line_number_b = abs($TMatch[0][1]);
+		}
+		else 
+		{
+			$deleted = $added = false;
+			
+			$posStrDeleted = strpos($line, '[-');
+			$posStrAdded = strpos($line, '{+');
+			
+			$line_a = $line;
+			$line_b = $line;
+
+			if ($posStrAdded !== false)
+			{
+				$added = true;
+				$posStrAdded2 = strpos($line, '+}') + 2 - $posStrAdded;
+				$line_a = str_replace(substr($line, $posStrAdded, $posStrAdded2), '', $line);
+		
+			}
+			if ($posStrDeleted !== false)
+			{
+				$deleted =true;
+				$posStrDeleted2 = strpos($line, '-]') + 2 - $posStrDeleted;
+				//if ($index == 3) var_dump($posStrDeleted, strpos($line, '-]'));
+				$line_b = str_replace(substr($line, $posStrDeleted, $posStrDeleted2), '', $line);
+				
+			}
+			
+			$line_a = htmlentities($line_a);
+			$line_a = str_replace(array('[-', '-]'), array('<span class="part_deleted">', '</span>'), $line_a);
+			
+			$line_b = htmlentities($line_b);
+			$line_b = str_replace(array('{+', '+}'), array('<span class="part_added">', '</span>'), $line_b);
+
+			$TRes[$title][$indice_line_modified][] = array(
+				'line_number_a' => $line_number_a
+				,'line_number_b' => $line_number_b
+				,'a' => $line_a
+				,'b' => $line_b
+				,'line_deleted' => $deleted
+				,'line_added' => $added
+			);
+			
+			$index++;
+			$line_number_a++;
+			$line_number_b++;
 		}
 	}
 	
