@@ -84,6 +84,7 @@ function _getModificationOfFile(&$Tab, $diff_file)
 			
 			if ($line[0] == '-') // Ligne supprimée sur branch A
 			{
+				$line = substr($line, 1);
 				if (is_null($index_start_delete)) $index_start_delete = $index;
 				$TRes[$title][$indice_line_modified][$index] = array('line_number_a' => $line_number_a, 'line_number_b' => '', 'a' => $line, 'b' => '', 'line_deleted' => true);
 				$line_number_a++;
@@ -91,6 +92,7 @@ function _getModificationOfFile(&$Tab, $diff_file)
 			}
 			elseif ($line[0] == '+') // Ligne ajoutée sur branch B
 			{
+				$line = substr($line, 1);
 				if (is_null($index_start_delete)) $index_start_delete = $index;
 				if (!isset($TRes[$title][$indice_line_modified][$index_start_delete]['a']))
 				{
@@ -162,34 +164,22 @@ function _printTLine(&$TLine)
 							$class_td_a = 'branch_a';
 							$class_line_number_b = '';
 							$class_td_b = 'branch_b';
-							//var_dump($TVal);
-							if (!empty($TVal['line_deleted'])) { $class_td_a .= ' line_deleted'; $class_line_number_a = ' line_num_deleted'; }
-							if (!empty($TVal['line_added'])) { $class_td_b .= ' line_added';  	$class_line_number_b = ' line_num_added'; }
+							
+							$sign_a = '';
+							$sign_b = '';
+							
+							if (!empty($TVal['line_deleted'])) { $sign_a = '-'; $class_td_a .= ' line_deleted'; $class_line_number_a = ' line_num_deleted'; }
+							if (!empty($TVal['line_added'])) { $sign_b = '+'; $class_td_b .= ' line_added';  	$class_line_number_b = ' line_num_added'; }
 							
 							if (empty($TVal['a'])) { $class_line_number_a .= ' empty_cell'; $class_td_a .= ' empty_cell'; }
 							if (empty($TVal['b'])) { $class_line_number_b .= ' empty_cell'; $class_td_b .= ' empty_cell'; }
 							
 							$str .= '<tr>';
-							$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'">'.$TVal['a'].'</td>';
-							$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'">'.$TVal['b'].'</td>';
+							$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'"><span class="sign" data-line-sign="'.$sign_a.'"></span>'.$TVal['a'].'</td>';
+							$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'"><span class="sign" data-line-sign="'.$sign_b.'"></span>'.$TVal['b'].'</td>';
 							$str .= '</tr>';
 						}
 
-						/*foreach ($TBranch as &$TVal)
-						{
-							$class_line_number_a = '';
-							$class_td_a = 'branch_a';
-							$class_line_number_b = '';
-							$class_td_b = 'branch_b';
-							
-							if (empty($TVal['a'])) { $class_td_a .= ' empty_cell'; 		$class_td_b .= ' line_added';  	$class_line_number_b = ' line_num_added'; }
-							if (empty($TVal['b'])) { $class_td_a .= ' line_deleted'; 	$class_td_b .= ' empty_cell'; 	$class_line_number_a = ' line_num_deleted'; }
-							
-							$str .= '<tr>';
-							$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'">'.$TVal['a'].'</td>';
-							$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'">'.$TVal['b'].'</td>';
-							$str .= '</tr>';
-						}*/
 					}
 					
 					if ($nb_sub_title == $i) $str .= '<tr class="diff_sub_title_end"><td colspan="1" class="line_number">&nbsp;</td><td colspan="3">&nbsp;</td></tr>';

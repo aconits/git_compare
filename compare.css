@@ -23,6 +23,7 @@ body {
 	margin: 0;
 	font-size:13px;
 	background:#fff;
+	font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;
 }
 
 td {
@@ -91,6 +92,16 @@ td {
 	text-align:right;
 	border-right:1px solid #eee;
 	color:rgba(0, 0, 0, 0.3);
+}
+
+.sign:before {
+	content:attr(data-line-sign);
+}
+
+.sign {
+	display:inline-block;
+	text-align:center;
+	width:8px;
 }
 
 .separate_line{
