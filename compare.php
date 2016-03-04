@@ -18,33 +18,8 @@
  */
  
  //require 'color.class.php';
-$TDir = array('/var/www/dolibarr/');
-$TGitDir = array();
-//$t1 = microtime(true);
-foreach ($TDir as $dir)
-{
-	$TSubDir = scandir($dir);
-	foreach ($TSubDir as $sub_dir)
-	{
-		if ($sub_dir == '.' || $sub_dir == '..') continue;
-		if (is_dir($dir.$sub_dir))
-		{
-			$TBranch = array();
-			exec('cd '.$dir.$sub_dir.' && git branch ', $TBranch);
-			
-			$TGitDir[$sub_dir] = array('fullpath' => $dir.$sub_dir, 'TBranch' => $TBranch);
-		}
-	}
-	
-}
-//var_dump($TGitDir);
 
-
-//$t2 = microtime(true);
-//echo '<br /><br />'.($t2-$t1);
-//exit;
-
-$srcFile = '/var/www/html/compare/test.diff';
+$srcFile = '/var/www/html/test.diff';
 
 $handle = fopen($srcFile, 'r');
 $branch_a = array();
@@ -68,14 +43,20 @@ if ($handle)
 		
 	}
 
-	//$t1 = microtime(true);	
+	$t1 = microtime(true);
 	foreach ($TData as $diff_file => &$Tab)
 	{
 		$TLine[] = _getModificationOfFile($Tab, $diff_file);
 	}
+	
+	_printTLine($TLine);
+	
 
-	//$t2 = microtime(true);	
-	_printTLine($TLine, $TGitDir);
+	$t2 = microtime(true);
+	//$t1 = microtime(true);
+	//$t2 = microtime(true);
+	
+	echo '<br /><br /><br />'.($t2-$t1);
 	
 	fclose($handle);
 }
@@ -236,13 +217,13 @@ function _cleanTitle($diff_file)
 	return htmlentities($diff_file);
 }
 
-function _printTLine(&$TLine, &$TGitDir)
+function _printTLine(&$TLine)
 {
 	_printHeader();
 	
 	$str = '<div id="content">';
 	
-	_printSelect($TGitDir);
+	_printSelect();
 	
 	foreach ($TLine as $k => &$Tab)
 	{
@@ -305,9 +286,10 @@ function _printHeader()
 <!DOCTYPE html>
 <html>
 <head>
-<title>Git diff - compare</title>
-<link rel="stylesheet" type="text/css" href="compare.css">
-</head>
+	<meta charset="utf-8">
+	<title>Git diff - compare</title>
+	<link rel="stylesheet" type="text/css" href="compare.css">
+	</head>
 <body>
 	<?php
 }
@@ -320,28 +302,58 @@ function _printFooter()
 	<?php
 }
 
-function _printSelect(&$TGitDir)
+function _getAllSubDirGitedByDir()
 {
+	$TDir = array('/var/www/html/dolibarr/');
+	return _getAllSubDirGited($TDir);
+}
+
+function _getAllSubDirGited($TDir)
+{
+	$TGitDir = array();
 	
-	$TOptionDepot = array();
-	$TOptionBranch = array();
-//	var_dump($TGitDir);exit;
+	foreach ($TDir as $dir)
+	{
+		$TSubDir = scandir($dir);
+		
+		foreach ($TSubDir as $sub_dir)
+		{
+			if ($sub_dir == '.' || $sub_dir == '..') continue;
+			if (is_dir($dir.$sub_dir))
+			{
+				$TBranch = array();
+				exec('cd '.$dir.$sub_dir.' && git branch ', $TBranch);
+				
+				$TGitDir[$sub_dir] = array('default' => '', 'fullpath' => $dir.$sub_dir, 'TBranch' => $TBranch); 
+				//TODO check si TBranch contient bien une arbos de branch
+				foreach ($TBranch as &$branch_name)
+				{
+					if ($branch_name[0] == '*')
+					{
+						$TGitDir[$sub_dir]['default'] = $branch_name;
+						break;
+					}
+				}
+				
+			}
+		}	
+	}
+	
+	return $TGitDir;
+}
+
+function _printSelect()
+{
+	$TGitDir = _getAllSubDirGitedByDir();
+
+	$select = 'Depot : <select name="depot"><option value=""></option>';
 	foreach ($TGitDir as $dir_name => &$TInfo)
 	{
-		$TOptionDepot[] = '<option value="'.$TInfo['fullpath'].'">'.$dir_name.'</option>';
-		$TOptionBranch[$TInfo['fullpath']] = $TInfo['TBranch'];
+		$select .= '<option value="'.$TInfo['fullpath'].'">'.$dir_name.'</option>';
 	}
+	$select .= '</select>';
 	
-	echo 'Depot : <select name="depot"><option value=""></option>';
-	foreach ($TOptionDepot as &$option)
-	{
-		echo $option;
-	}
-	echo '</select>';
-	
-	
+	echo $select;
 	echo ' Branch A : <select name="branch_a"><option value=""></option></select>';
-	
 	echo '..Branch B : <select name="branch_b"><option value=""></option></select>';
-	
 }
