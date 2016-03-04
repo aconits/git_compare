@@ -18,9 +18,9 @@
  */
  
  //require 'color.class.php';
-/*$TDir = array('/var/www/html/');
+$TDir = array('/var/www/dolibarr/');
 $TGitDir = array();
-$t1 = microtime(true);
+//$t1 = microtime(true);
 foreach ($TDir as $dir)
 {
 	$TSubDir = scandir($dir);
@@ -29,30 +29,20 @@ foreach ($TDir as $dir)
 		if ($sub_dir == '.' || $sub_dir == '..') continue;
 		if (is_dir($dir.$sub_dir))
 		{
-			echo $sub_dir.'<br />';
+			$TBranch = array();
+			exec('cd '.$dir.$sub_dir.' && git branch ', $TBranch);
 			
-			//chdir($dir.$sub_dir);
-			
-			exec('cd '.$dir.$sub_dir.' && ')
-			
-			$TGitDir[$sub_dir] = $dir.$sub_dir;
-			
+			$TGitDir[$sub_dir] = array('fullpath' => $dir.$sub_dir, 'TBranch' => $TBranch);
 		}
 	}
 	
 }
+//var_dump($TGitDir);
 
 
-echo '<select><option value=""></option>';
-foreach ($TGitDir as $dir_name => $fullpath)
-{
-	echo '<option value="'.$fullpath.'">'.$dir_name.'</option>';
-}
-echo '</select>';
-
-$t2 = microtime(true);
-echo '<br /><br />'.($t2-$t1);
-exit;*/
+//$t2 = microtime(true);
+//echo '<br /><br />'.($t2-$t1);
+//exit;
 
 $srcFile = '/var/www/html/compare/test.diff';
 
@@ -85,7 +75,7 @@ if ($handle)
 	}
 
 	//$t2 = microtime(true);	
-	_printTLine($TLine); 
+	_printTLine($TLine, $TGitDir);
 	
 	fclose($handle);
 }
@@ -246,11 +236,14 @@ function _cleanTitle($diff_file)
 	return htmlentities($diff_file);
 }
 
-function _printTLine(&$TLine)
+function _printTLine(&$TLine, &$TGitDir)
 {
 	_printHeader();
 	
 	$str = '<div id="content">';
+	
+	_printSelect($TGitDir);
+	
 	foreach ($TLine as $k => &$Tab)
 	{
 		$str .= '<div class="diff_file">';
@@ -325,4 +318,30 @@ function _printFooter()
 </body>
 </html>
 	<?php
+}
+
+function _printSelect(&$TGitDir)
+{
+	
+	$TOptionDepot = array();
+	$TOptionBranch = array();
+//	var_dump($TGitDir);exit;
+	foreach ($TGitDir as $dir_name => &$TInfo)
+	{
+		$TOptionDepot[] = '<option value="'.$TInfo['fullpath'].'">'.$dir_name.'</option>';
+		$TOptionBranch[$TInfo['fullpath']] = $TInfo['TBranch'];
+	}
+	
+	echo 'Depot : <select name="depot"><option value=""></option>';
+	foreach ($TOptionDepot as &$option)
+	{
+		echo $option;
+	}
+	echo '</select>';
+	
+	
+	echo ' Branch A : <select name="branch_a"><option value=""></option></select>';
+	
+	echo '..Branch B : <select name="branch_b"><option value=""></option></select>';
+	
 }
