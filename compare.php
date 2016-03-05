@@ -19,25 +19,66 @@
  
  //require 'color.class.php';
 
-$action = !empty($_GET['action']) ? $_GET['action'] : '';
+$action = !empty($_POST['action']) ? $_POST['action'] : '';
 
 switch ($action) 
 {
-	case 'getBranchFromDir':
-		
+	case 'printSelect':
+		_printSelect();
 		break;
+		
+	case 'getTBranch':
+		echo json_encode(_getTBranch($_POST['depot']));
+		break;
+		
+	case 'execDiff':
+		$THtml = '';
+		$file = _createDiffFile($_POST['depot'], $_POST['branch_a'], $_POST['branch_b']);
+		_readDiffFile($THtml, $file);
+		echo json_encode($THtml);
 	
+	case 'test':
+		$THtml = '';
+		_readDiffFile($THtml);
+		echo json_encode($THtml);
+		break;
+		
 	default:
-		_display();
+		_displayHtmlCore();
 		break;
 }
+exit;
 
-function _display()
+function _displayHtmlCore()
 {
-	$srcFile = '/var/www/html/test.diff';
-	$handle = fopen($srcFile, 'r');
+	include './compare.html';
+}
+
+function _getTBranch($depot)
+{
+	$TBranch = array();
+	exec('cd '.$depot.' && git branch ', $Tab);
 	
-	$TGitDir = _getAllSubDirGitedByDir();
+	//TODO check si TBranch contient bien une arbos de branch
+	foreach ($Tab as &$branch_name)
+	{
+		$default = 0;
+		if ($branch_name[0] == '*') $default = 1;
+		$TBranch[] = array('branch_name' => $branch_name, 'default' => $default);
+	}
+
+	return $TBranch;
+}
+
+function _createDiffFile($depot, $branch_a, $branch_b)
+{
+	//TODO à finaliser
+	return '/var/www/html/test.diff';
+}
+
+function _readDiffFile(&$THtml, $srcFile = '/var/www/html/test.diff')
+{
+	$handle = fopen($srcFile, 'r');
 	
 	if ($handle)
 	{
@@ -63,21 +104,10 @@ function _display()
 		{
 			$TLine[] = _getModificationOfFile($Tab, $diff_file);
 		}
-	
-		
-		_printTLine($TLine);
-		
-	
-		$t2 = microtime(true);
-		//$t1 = microtime(true);
-		//$t2 = microtime(true);
-		
-		//echo '<br /><br /><br />'.($t2-$t1);
 		
 		
+		_printTLine($THtml, $TLine);
 	}
-	
-	
 }
 
 function _getModificationOfFile(&$Tab, $diff_file)
@@ -95,7 +125,8 @@ function _getModificationOfFile(&$Tab, $diff_file)
 			$index = 0;
 			$index_start_delete = null;
 			
-			$indice_line_modified = htmlentities($line);
+			$indice_line_modified = rtrim($line,"\r\n");
+			$indice_line_modified = htmlentities($indice_line_modified);
 			$TRes[$title][$indice_line_modified] = array();
 			
 			// @@ -47,7 +47,8 @@ $specialtostring=array(0=>'common', 1=>'interfaces', 2=>'other', 3=>'functional'
@@ -107,6 +138,7 @@ function _getModificationOfFile(&$Tab, $diff_file)
 		}
 		else 
 		{
+			//TODO si le contenu de la ligne est trop long, la largeur des colonnes n'est pas respecté à l'affichage
 			$line = htmlentities($line);
 			
 			if ($line[0] == '-') // Ligne supprimée sur branch A
@@ -198,9 +230,7 @@ function _getModificationOfFile2(&$Tab, $diff_file)
 			{
 				$deleted =true;
 				$posStrDeleted2 = strpos($line, '-]') + 2 - $posStrDeleted;
-				//if ($index == 3) var_dump($posStrDeleted, strpos($line, '-]'));
 				$line_b = str_replace(substr($line, $posStrDeleted, $posStrDeleted2), '', $line);
-				
 			}
 			
 			$line_a = htmlentities($line_a);
@@ -236,17 +266,12 @@ function _cleanTitle($diff_file)
 	return htmlentities($diff_file);
 }
 
-function _printTLine(&$TLine)
+function _printTLine(&$THtml, &$TLine)
 {
-	_printHeader();
-	
-	$str = '<div id="content">';
-	
-	_printSelect();
 	
 	foreach ($TLine as $k => &$Tab)
 	{
-		$str .= '<div class="diff_file">';
+		$str = '<div class="diff_file">';
 			
 			foreach ($Tab as $title => &$T) 
 			{
@@ -260,7 +285,8 @@ function _printTLine(&$TLine)
 					$str .= '<div class="diff_data">'; 
 					
 					$str .= '<table>';
-					$str .= '<tr class="diff_sub_title"><td colspan="1" class="line_number">&nbsp;</td><td colspan="3">'.$sub_title.'</td></tr>';
+					$str .= '<thead></thead>';
+					$str .= '<tbody><tr class="diff_sub_title"><td colspan="1" class="line_number">&nbsp;</td><td colspan="3">'.$sub_title.'</td></tr>';
 					
 					if (!empty($TBranch))
 					{
@@ -281,44 +307,23 @@ function _printTLine(&$TLine)
 							if (empty($TVal['b'])) { $class_line_number_b .= ' empty_cell'; $class_td_b .= ' empty_cell'; }
 							
 							$str .= '<tr>';
-							$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'"><span class="sign" data-line-sign="'.$sign_a.'"></span>'.$TVal['a'].'</td>';
-							$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'"><span class="sign" data-line-sign="'.$sign_b.'"></span>'.$TVal['b'].'</td>';
+							$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'"><span class="sign" data-line-sign="'.$sign_a.'"></span><span class="code_line">'.$TVal['a'].'</span></td>';
+							$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'"><span class="sign" data-line-sign="'.$sign_b.'"></span><span class="code_line">'.$TVal['b'].'</span></td>';
 							$str .= '</tr>';
 						}
 
 					}
 					
 					if ($nb_sub_title == $i) $str .= '<tr class="diff_sub_title_end"><td colspan="1" class="line_number">&nbsp;</td><td colspan="3">&nbsp;</td></tr>';
-					$str .= '</table>';
+					$str .= '</tbody><tfooter></tfooter></table>';
 					$str .= '</div>';
 				}
 			}
 		$str .= '</div>';
+		$THtml[] = $str;
 	}
-	$str.= '</div>';
-	echo $str;
-}
-
-function _printHeader()
-{
-	?>
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<title>Git diff - compare</title>
-	<link rel="stylesheet" type="text/css" href="compare.css">
-	</head>
-<body>
-	<?php
-}
-
-function _printFooter()
-{
-	?>
-</body>
-</html>
-	<?php
+	
+	unset($str, $TLine);
 }
 
 function _getAllSubDirGitedByDir()
@@ -340,20 +345,8 @@ function _getAllSubDirGited($TDir)
 			if ($sub_dir == '.' || $sub_dir == '..') continue;
 			if (is_dir($dir.$sub_dir))
 			{
-				$TBranch = array();
-				exec('cd '.$dir.$sub_dir.' && git branch ', $TBranch);
-				
-				$TGitDir[$sub_dir] = array('default' => '', 'fullpath' => $dir.$sub_dir, 'TBranch' => $TBranch); 
-				//TODO check si TBranch contient bien une arbos de branch
-				foreach ($TBranch as &$branch_name)
-				{
-					if ($branch_name[0] == '*')
-					{
-						$TGitDir[$sub_dir]['default'] = $branch_name;
-						break;
-					}
-				}
-				
+				// TODO check si le dossier est bien gité
+				$TGitDir[$sub_dir] = $dir.$sub_dir;
 			}
 		}	
 	}
@@ -366,13 +359,13 @@ function _printSelect()
 	$TGitDir = _getAllSubDirGitedByDir();
 
 	$select = 'Depot : <select name="depot"><option value=""></option>';
-	foreach ($TGitDir as $dir_name => &$TInfo)
+	foreach ($TGitDir as $dir_name => &$fullpath)
 	{
-		$select .= '<option value="'.$TInfo['fullpath'].'">'.$dir_name.'</option>';
+		$select .= '<option value="'.$fullpath.'">'.$dir_name.'</option>';
 	}
 	$select .= '</select>';
 	
 	echo $select;
 	echo ' A : <select name="branch_a"><option value=""></option></select>';
-	echo '.. B : <select name="branch_b"><option value=""></option></select>';
+	echo '.. B : <select name="branch_b"><option value=""></option></select><input type="button" id="test" value="test" />';
 }

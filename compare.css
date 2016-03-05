@@ -26,15 +26,29 @@ body {
 	font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;
 }
 
+#loading {
+	display:none;
+	padding:10px;
+	position: fixed;
+	right: 0;
+	top: 0;
+}
+
+#content {
+	padding:25px;
+}
+
+table {
+	width:100%;
+	border-collapse: separate;
+	border-spacing:0;
+}
+
 td {
 	padding:1px 10px;
 	vertical-align:top;
 	font-size:12px;
 	line-height:16px;
-}
-
-#content {
-	padding:25px;
 }
 
 .diff_file {
@@ -71,16 +85,14 @@ td {
 
 .branch_a, .branch_b {
 	width:48%;
-	white-space:pre-wrap;
-	word-wrap: break-word;
 	-moz-tab-size:8;
 	-o-tab-size:8;
 	tab-size:8;
 }
 
-.diff_data table {
-	border-collapse: separate;
-	border-spacing:0;
+.code_line {
+	white-space:pre-wrap;
+	word-wrap: break-word;
 }
 
 .line_number::before {
@@ -138,16 +150,4 @@ td {
 
 .part_added {
 	background-color: #a6f3a6;
-}
-
-.clearfix::after {
-    clear: both;
-}
-.clearfix::before, .clearfix::after {
-    content: " ";
-    display: table;
-}
-
-.clear {
-	clear:both;
 }
