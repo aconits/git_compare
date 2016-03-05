@@ -19,46 +19,65 @@
  
  //require 'color.class.php';
 
-$srcFile = '/var/www/html/test.diff';
+$action = !empty($_GET['action']) ? $_GET['action'] : '';
 
-$handle = fopen($srcFile, 'r');
-$branch_a = array();
-$branch_b = array();
-$TData = $TLine = array();
-
-if ($handle)
+switch ($action) 
 {
-	$i=0;
-	$last_new_file = '';
-	while ($line = fgets($handle))
+	case 'getBranchFromDir':
+		
+		break;
+	
+	default:
+		_display();
+		break;
+}
+
+function _display()
+{
+	$srcFile = '/var/www/html/test.diff';
+	$handle = fopen($srcFile, 'r');
+	
+	$TGitDir = _getAllSubDirGitedByDir();
+	
+	if ($handle)
 	{
-		if (substr($line, 0, 4) == 'diff')
+		$last_new_file = '';
+		$TData = $TLine = array();
+		
+		while ($line = fgets($handle))
 		{
-			$last_new_file = $line;
-			$TData[$last_new_file] = array();
-		}
-		else {
-			$TData[$last_new_file][] = $line;
+			if (substr($line, 0, 4) == 'diff')
+			{
+				$last_new_file = $line;
+				$TData[$last_new_file] = array();
+			}
+			else {
+				$TData[$last_new_file][] = $line;
+			}
 		}
 		
+		fclose($handle);
+		
+		$t1 = microtime(true);
+		foreach ($TData as $diff_file => &$Tab)
+		{
+			$TLine[] = _getModificationOfFile($Tab, $diff_file);
+		}
+	
+		
+		_printTLine($TLine);
+		
+	
+		$t2 = microtime(true);
+		//$t1 = microtime(true);
+		//$t2 = microtime(true);
+		
+		//echo '<br /><br /><br />'.($t2-$t1);
+		
+		
 	}
-
-	$t1 = microtime(true);
-	foreach ($TData as $diff_file => &$Tab)
-	{
-		$TLine[] = _getModificationOfFile($Tab, $diff_file);
-	}
 	
-	_printTLine($TLine);
 	
-
-	$t2 = microtime(true);
-	//$t1 = microtime(true);
-	//$t2 = microtime(true);
-	
-	echo '<br /><br /><br />'.($t2-$t1);
-	
-	fclose($handle);
 }
 
 function _getModificationOfFile(&$Tab, $diff_file)
@@ -354,6 +373,6 @@ function _printSelect()
 	$select .= '</select>';
 	
 	echo $select;
-	echo ' Branch A : <select name="branch_a"><option value=""></option></select>';
-	echo '..Branch B : <select name="branch_b"><option value=""></option></select>';
+	echo ' A : <select name="branch_a"><option value=""></option></select>';
+	echo '.. B : <select name="branch_b"><option value=""></option></select>';
 }
