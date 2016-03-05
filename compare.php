@@ -358,7 +358,7 @@ function _printSelect()
 {
 	$TGitDir = _getAllSubDirGitedByDir();
 
-	$select = 'Depot : <select name="depot"><option value=""></option>';
+	$select = '<select name="depot"><option value=""></option>';
 	foreach ($TGitDir as $dir_name => &$fullpath)
 	{
 		$select .= '<option value="'.$fullpath.'">'.$dir_name.'</option>';
@@ -366,6 +366,4 @@ function _printSelect()
 	$select .= '</select>';
 	
 	echo $select;
-	echo ' A : <select name="branch_a"><option value=""></option></select>';
-	echo '.. B : <select name="branch_b"><option value=""></option></select><input type="button" id="test" value="test" />';
 }

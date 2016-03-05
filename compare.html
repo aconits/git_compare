@@ -18,7 +18,7 @@
 					}
 					,dataType:'html'
 					,success:function(html, statut) {
-						$('#pre_content').append(html);
+						$('#depot').append(html);
 					}
 					,error:function(resultat, statut, erreur) {
 						console.log(resultat, statut, erreur);
@@ -118,7 +118,29 @@
 	<h1>GIT COMPARE</h1>
 	<img id="loading" src="default.gif" />
 	<div id="pre_content">
-		<!-- select Depot will be here with others select about branch -->
+		<!-- select Depot will be here -->
+		<div id="depot">
+			<label>Depôt</label>
+		</div>
+		
+		<div class="align_right">
+			<label>A</label> 
+			<select name="branch_a">
+				<option value="">&nbsp;</option>
+			</select>	
+		</div>
+		<div class="align_top">
+			<label>..</label>
+		</div>
+		<div>
+			<label>B</label> 
+			<select name="branch_b">
+				<option value="">&nbsp;</option>
+			</select>	
+		</div>
+		
+		<input type="button" id="execDiff" value="Diff" />
+		<input type="button" id="test" value="test" />
 	</div>
 	<div id="content">
 		

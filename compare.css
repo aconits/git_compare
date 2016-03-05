@@ -20,10 +20,19 @@
 }
 
 body {
+	padding:0 25px 25px;
 	margin: 0;
 	font-size:13px;
 	background:#fff;
 	font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;
+}
+
+.align_right {
+	text-align:right;
+}
+
+.align_top {
+	vertical-align:top;
 }
 
 #loading {
@@ -34,8 +43,16 @@ body {
 	top: 0;
 }
 
-#content {
-	padding:25px;
+#pre_content {
+	margin-bottom:25px;
+}
+
+#pre_content div {
+	display:inline-block;
+}
+
+#pre_content div label {
+	display:block;
 }
 
 table {
