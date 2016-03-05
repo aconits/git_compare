@@ -3,133 +3,24 @@
 <head>
 	<meta charset="utf-8">
 	<title>Git diff - compare</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-	<link rel="stylesheet" type="text/css" href="compare.css">
 	
-	<script type="text/javascript">
-		$(function() {
-			$(window).load(function() {
-				$.ajax({
-					url:'compare.php'
-					,async:false
-					,type:'POST'
-					,data:{
-						action:'printSelect'
-					}
-					,dataType:'html'
-					,success:function(html, statut) {
-						$('#depot').append(html);
-					}
-					,error:function(resultat, statut, erreur) {
-						console.log(resultat, statut, erreur);
-				   }
-				});
-				
-				$('select[name=depot]').change(function() {
-					var depot = this;
-					
-					$.ajax({
-						url:'compare.php'
-						,type:'POST'
-						,data:{
-							action:'getTBranch'
-							,depot:$(depot).val()
-						}
-						,dataType:'json'
-						,success:function(TBranch, statut) {
-							$('select[name=branch_a], select[name=branch_b]').empty();
-							var length = TBranch.length;
-							if (length > 0)
-							{
-								var i = 0;
-								for(var i=0; i<length; i++)
-								{
-									var option = $('<option '+(TBranch[i].default == 1 ? 'selected="selected"' : '')+' value="'+TBranch[i].branch_name+'">'+TBranch[i].branch_name+'</option>');
-									$('select[name=branch_a], select[name=branch_b]').append(option);
-								}
-							}
-						}
-						,error:function(resultat, statut, erreur) {
-							console.log(resultat, statut, erreur);
-					   }
-					});
-				});
-				
-				$('#test').click(function() {
-					xhr_diff = $.ajax({
-						url:'compare.php'
-						,type:'POST'
-						,data:{
-							action:'test' //TODO à remplacer par execDiff
-							,depot:$('select[name=depot]').val()
-							,branch_a:$('select[name=branch_a]').val()
-							,branch_b:$('select[name=branch_b]').val()
-						}
-						,dataType:'json'
-						,beforeSend: function() 
-				        {
-				            if(typeof xhr_diff != 'undefined' ) xhr_diff.abort();
-				        }
-						,success:function(THtml, statut) {
-							var length = THtml.length;
-							var content = $('#content');
-							content.empty();
-							
-							if (length > 0)
-							{
-								processLargeArray(content, THtml, length);
-							}
-						}
-						,error:function(resultat, statut, erreur) {
-							console.log(resultat, statut, erreur);
-					   }
-					});
-				});
-				
-			});
-			
-		});
-		
-		/*
-		 * Source : http://stackoverflow.com/questions/10344498/best-way-to-iterate-over-an-array-without-blocking-the-ui/10344560#10344560
-		 */
-		function processLargeArray(content, THtml, length)
-		{
-		    $('#loading').show();
-		    
-		    var chunk = 10;
-		    var index = 0;
-		    function doChunk() {
-		        var cnt = chunk;
-		        while (cnt-- && index < length) {
-		        	content.append(THtml[index]);
-		        	++index;
-		        }
-		        if (index < length) {
-		            // set Timeout for async iteration
-		            setTimeout(doChunk, 1);
-		        }
-		        else
-		        {
-		        	$('#loading').hide();
-		        }
-		    }    
-		    doChunk();
-		}
-	</script>
+	
+	<link rel="stylesheet" type="text/css" href="compare.css">
+	<script src="compare.js"></script>
+	
 </head>
 <body>
 	<h1>GIT COMPARE</h1>
 	<img id="loading" src="default.gif" />
 	<div id="pre_content">
 		<!-- select Depot will be here -->
-		<div id="depot">
+		<div id="depot" class="align_top">
 			<label>Depôt</label>
 		</div>
 		
 		<div class="align_right">
 			<label>A</label> 
-			<select name="branch_a">
+			<select id="branch_a" name="branch_a">
 				<option value="">&nbsp;</option>
 			</select>	
 		</div>
@@ -138,7 +29,7 @@
 		</div>
 		<div>
 			<label>B</label> 
-			<select name="branch_b">
+			<select id="branch_b" name="branch_b">
 				<option value="">&nbsp;</option>
 			</select>	
 		</div>

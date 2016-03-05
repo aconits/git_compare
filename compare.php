@@ -23,8 +23,8 @@ $action = !empty($_POST['action']) ? $_POST['action'] : '';
 
 switch ($action) 
 {
-	case 'printSelect':
-		_printSelect();
+	case 'getTDepot':
+		echo json_encode(_getAllSubDirGitedByDir());
 		break;
 		
 	case 'getTBranch':
@@ -352,18 +352,4 @@ function _getAllSubDirGited($TDir)
 	}
 	
 	return $TGitDir;
-}
-
-function _printSelect()
-{
-	$TGitDir = _getAllSubDirGitedByDir();
-
-	$select = '<select name="depot"><option value=""></option>';
-	foreach ($TGitDir as $dir_name => &$fullpath)
-	{
-		$select .= '<option value="'.$fullpath.'">'.$dir_name.'</option>';
-	}
-	$select .= '</select>';
-	
-	echo $select;
 }
