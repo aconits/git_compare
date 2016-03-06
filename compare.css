@@ -35,24 +35,6 @@ body {
 	vertical-align:top;
 }
 
-#loading {
-	opacity:0;
-	padding:10px;
-	position: fixed;
-	right: 15px;
-	top: 0;
-	
-	-webkit-transition: opacity 0.3s ease-in;
-    -moz-transition: opacity 0.3s ease-in;
-    -o-transition: opacity 0.3s ease-in;
-    -ms-transition: opacity 0.3s ease-in;
-    transition: opacity 0.3s ease-in;
-}
-
-#loading.load {
-    opacity: 1;
-}
-
 #test {
 	display:none;
 }
@@ -203,21 +185,42 @@ td {
     -ms-transition: opacity 0.5s ease-in;
     transition: opacity 0.5s ease-in;
 }
+
 #error_msg.load {
     opacity: 1;
 }
 
 #progress{
-    width: 300px;
-    margin: auto;
+	opacity:0;
+    position:absolute;
+    top:20px;
+    right:25px;
+    -webkit-transition: opacity 0.3s ease-in;
+    -moz-transition: opacity 0.3s ease-in;
+    -o-transition: opacity 0.3s ease-in;
+    -ms-transition: opacity 0.3s ease-in;
+    transition: opacity 0.3s ease-in;
 }
+
+#progress.load {
+    opacity: 1;
+}
+
+#progress_txt {
+	display:inline-block;
+	height:20px;
+    vertical-align:top;
+    line-height:20px;
+    font-weight:bold;
+}
+
 progress{
     display: inline-block;
     -moz-box-sizing: border-box;
          box-sizing: border-box;
     width: 300px;
     height: 20px;
-    padding: 3px 3px 2px 3px;
+    padding: 2px 2px 1px;
     background: #333; 
     background: -webkit-linear-gradient(#2d2d2d,#444);
     background:    -moz-linear-gradient(#2d2d2d,#444);

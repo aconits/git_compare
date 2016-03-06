@@ -115,9 +115,12 @@ function showDiff(THtml)
  */
 function processLargeArray(content, THtml, length)
 {
-    document.getElementById('loading').className = 'load';
+    var progress_box = document.getElementById('progress');
     var progress_txt = document.getElementById('progress_txt');
-    var progress = document.getElementById('progress_element');
+    var progress_element = document.getElementById('progress_element');
+    progress_element.value = 0;
+    progress_txt.innerHTML = '0%';
+    progress_box.className = 'load';
     
     var chunk = 10;
     var index = 0;
@@ -130,9 +133,9 @@ function processLargeArray(content, THtml, length)
         	++index;
         }
         
-        var newVal = (index*100)/length;
-        progress.value = newVal;
-        progress_txt.innerHTML = Math.floor(newVal)+'%';
+        var newVal = Math.floor((index*100)/length);
+        progress_element.value = newVal;
+        progress_txt.innerHTML = newVal+'%';
         
         if (index < length) {
             // set Timeout for async iteration
@@ -140,7 +143,7 @@ function processLargeArray(content, THtml, length)
         }
         else
         {
-        	document.getElementById('loading').className = '';
+        	setTimeout(function() { progress_box.className = ''; }, 800);
         }
     }    
     doChunk();
