@@ -30,6 +30,11 @@
 		
 		<input type="button" id="execDiff" value="Diff" onclick="javascript:execDiff();" />
 		<input type="button" id="test" value="test" onclick="javascript:test();" />
+		
+		<div id="progress">
+		    <p>Retrieving data...<strong id="progress_txt">0%</strong></p>
+		    <progress id="progress_element" value="0" min="0" max="100">0%</progress>
+		</div>
 	</div>
 	<div id="content">
 		

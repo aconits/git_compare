@@ -116,6 +116,8 @@ function showDiff(THtml)
 function processLargeArray(content, THtml, length)
 {
     document.getElementById('loading').className = 'load';
+    var progress_txt = document.getElementById('progress_txt');
+    var progress = document.getElementById('progress_element');
     
     var chunk = 10;
     var index = 0;
@@ -127,9 +129,14 @@ function processLargeArray(content, THtml, length)
         	content.insertAdjacentHTML('beforeend', THtml[index]);
         	++index;
         }
+        
+        var newVal = (index*100)/length;
+        progress.value = newVal;
+        progress_txt.innerHTML = Math.floor(newVal)+'%';
+        
         if (index < length) {
             // set Timeout for async iteration
-            setTimeout(doChunk, 1000);
+            setTimeout(doChunk, 1);
         }
         else
         {
