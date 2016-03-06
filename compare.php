@@ -76,7 +76,11 @@ function _createDiffFile($depot, $branch_a, $branch_b)
 	$dir = dirname(__FILE__).'/tmp';
 	$target = $dir.'/compare.diff';
 	
-	if (!is_writable($dir)) echo 'Impossible d\'écrire dans le dossier : '.$dir;
+	if (!is_writable($dir))
+	{
+		header($_SERVER["SERVER_PROTOCOL"].' 500 Internal Server Error. Can\'t write data');
+		exit('<strong>Erreur :</strong> impossible d\'écrire dans le dossier : '.$dir);
+	}
 	else 
 	{
 		if (empty($depot)) $cmd = 'cd '.$dir.' && git diff '.$branch_a.'..'.$branch_b.' > '.$target;
@@ -85,8 +89,6 @@ function _createDiffFile($depot, $branch_a, $branch_b)
 		exec($cmd);
 		return $target;
 	}
-	
-	return '';
 }
 
 function _readDiffFile(&$THtml, $srcFile = '/var/www/html/test.diff')

@@ -36,11 +36,21 @@ body {
 }
 
 #loading {
-	display:none;
+	opacity:0;
 	padding:10px;
 	position: fixed;
-	right: 0;
+	right: 15px;
 	top: 0;
+	
+	-webkit-transition: opacity 0.3s ease-in;
+    -moz-transition: opacity 0.3s ease-in;
+    -o-transition: opacity 0.3s ease-in;
+    -ms-transition: opacity 0.3s ease-in;
+    transition: opacity 0.3s ease-in;
+}
+
+#loading.load {
+    opacity: 1;
 }
 
 #test {
@@ -171,4 +181,28 @@ td {
 
 .part_added {
 	background-color: #a6f3a6;
+}
+
+#error_msg {
+	opacity: 0;
+	width:600px;
+	position:absolute;
+	top:12px;
+	left:50%;
+	margin-left:-300px;
+	text-align:center;
+	background-color: #f2dede;
+    border:1px solid #ebccd1;
+    color: #a94442;
+    border-radius: 4px;
+    padding:12px;
+    
+    -webkit-transition: opacity 0.5s ease-in;
+    -moz-transition: opacity 0.5s ease-in;
+    -o-transition: opacity 0.5s ease-in;
+    -ms-transition: opacity 0.5s ease-in;
+    transition: opacity 0.5s ease-in;
+}
+#error_msg.load {
+    opacity: 1;
 }

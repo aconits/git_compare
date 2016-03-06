@@ -4,12 +4,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function request(callback, args) 
 {
+	var error = document.getElementById('error_msg');
 	var xhr = new XMLHttpRequest();
 	
 	xhr.onreadystatechange = function() {
+		error.className = '';
+		
 		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) 
 		{
 	        callback(xhr.responseText);
+	    }
+	    else if (xhr.readyState == 4 && xhr.status == 500)
+	    {
+	    	error.innerHTML = xhr.responseText;
+	    	error.className = 'load';
 	    }
 	};
 	
@@ -107,7 +115,7 @@ function showDiff(THtml)
  */
 function processLargeArray(content, THtml, length)
 {
-    document.getElementById('loading').style.display = 'block';
+    document.getElementById('loading').className = 'load';
     
     var chunk = 10;
     var index = 0;
@@ -121,11 +129,11 @@ function processLargeArray(content, THtml, length)
         }
         if (index < length) {
             // set Timeout for async iteration
-            setTimeout(doChunk, 1);
+            setTimeout(doChunk, 1000);
         }
         else
         {
-        	document.getElementById('loading').style.display = 'none';
+        	document.getElementById('loading').className = '';
         }
     }    
     doChunk();
