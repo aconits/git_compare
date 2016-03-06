@@ -18,13 +18,14 @@
  */
  
  //require 'color.class.php';
+require 'config.php';
 
 $action = !empty($_POST['action']) ? $_POST['action'] : '';
 
 switch ($action) 
 {
 	case 'getTDepot':
-		echo json_encode(_getAllSubDirGitedByDir());
+		echo json_encode(_getAllSubDirGited());
 		break;
 		
 	case 'getTBranch':
@@ -36,7 +37,8 @@ switch ($action)
 		$file = _createDiffFile($_POST['depot'], $_POST['branch_a'], $_POST['branch_b']);
 		if (!empty($file)) _readDiffFile($THtml, $file);
 		echo json_encode($THtml);
-	
+		break;
+		
 	case 'test':
 		$THtml = '';
 		_readDiffFile($THtml);
@@ -59,7 +61,6 @@ function _getTBranch($depot)
 	$TBranch = array();
 	exec('cd '.$depot.' && git branch ', $Tab);
 	
-	//TODO check si TBranch contient bien une arbos de branch
 	foreach ($Tab as &$branch_name)
 	{
 		$default = 0;
@@ -72,12 +73,20 @@ function _getTBranch($depot)
 
 function _createDiffFile($depot, $branch_a, $branch_b)
 {
-	$target = dirname(__FILE__).'/tmp/compare.diff';
-	$cmd = 'cd '.$depot.' && git diff '.$branch_a.'..'.$branch_b.' > '.$target;
+	$dir = dirname(__FILE__).'/tmp';
+	$target = $dir.'/compare.diff';
 	
-	exec($cmd, $Tab);
+	if (!is_writable($dir)) echo 'Impossible d\'écrire dans le dossier : '.$dir;
+	else 
+	{
+		if (empty($depot)) $cmd = 'cd '.$dir.' && git diff '.$branch_a.'..'.$branch_b.' > '.$target;
+		else $cmd = 'cd '.$depot.' && git diff '.$branch_a.'..'.$branch_b.' > '.$target;
+		
+		exec($cmd);
+		return $target;
+	}
+	
 	return '';
-	//return '/var/www/html/test.diff';
 }
 
 function _readDiffFile(&$THtml, $srcFile = '/var/www/html/test.diff')
@@ -132,8 +141,6 @@ function _getModificationOfFile(&$Tab, $diff_file)
 			$indice_line_modified = htmlentities($indice_line_modified);
 			$TRes[$title][$indice_line_modified] = array();
 			
-			// @@ -47,7 +47,8 @@ $specialtostring=array(0=>'common', 1=>'interfaces', 2=>'other', 3=>'functional'
-			$str = substr($line, 3, strpos($line, '@@', 2)-3); // Récupération de : [-47,7 +47,8]
 			preg_match_all('/(\+|-)[0-9]*/', $line, $TMatch); // $TMatch[0] = array(-47, +47)
 			
 			$line_number_a = abs($TMatch[0][0]);
@@ -205,8 +212,6 @@ function _getModificationOfFile2(&$Tab, $diff_file)
 			$indice_line_modified = htmlentities($line);
 			$TRes[$title][$indice_line_modified] = array();
 			
-			// @@ -47,7 +47,8 @@ $specialtostring=array(0=>'common', 1=>'interfaces', 2=>'other', 3=>'functional'
-			$str = substr($line, 3, strpos($line, '@@', 2)-3); // Récupération de : [-47,7 +47,8]
 			preg_match_all('/(\+|-)[0-9]*/', $line, $TMatch); // $TMatch[0] = array(-47, +47)
 			
 			$line_number_a = abs($TMatch[0][0]);
@@ -271,57 +276,57 @@ function _cleanTitle($diff_file)
 
 function _printTLine(&$THtml, &$TLine)
 {
-	
 	foreach ($TLine as $k => &$Tab)
 	{
 		$str = '<div class="diff_file">';
 			
-			foreach ($Tab as $title => &$T) 
+		foreach ($Tab as $title => &$T) 
+		{
+			$str .= '<div class="diff_title">'.$title.'</div>';
+			
+			$nb_sub_title = count($T);
+			$i=0;
+			foreach ($T as $sub_title => &$TBranch)
 			{
-				$str .= '<div class="diff_title">'.$title.'</div>';
+				$i++;
+				$str .= '<div class="diff_data">'; 
 				
-				$nb_sub_title = count($T);
-				$i=0;
-				foreach ($T as $sub_title => &$TBranch)
+				$str .= '<table>';
+				$str .= '<thead></thead>';
+				$str .= '<tbody><tr class="diff_sub_title"><td colspan="1" class="line_number">&nbsp;</td><td colspan="3">'.$sub_title.'</td></tr>';
+				
+				if (!empty($TBranch))
 				{
-					$i++;
-					$str .= '<div class="diff_data">'; 
-					
-					$str .= '<table>';
-					$str .= '<thead></thead>';
-					$str .= '<tbody><tr class="diff_sub_title"><td colspan="1" class="line_number">&nbsp;</td><td colspan="3">'.$sub_title.'</td></tr>';
-					
-					if (!empty($TBranch))
+					foreach ($TBranch as &$TVal)
 					{
-						foreach ($TBranch as &$TVal)
-						{
-							$class_line_number_a = '';
-							$class_td_a = 'branch_a';
-							$class_line_number_b = '';
-							$class_td_b = 'branch_b';
-							
-							$sign_a = '';
-							$sign_b = '';
-							
-							if (!empty($TVal['line_deleted'])) { $sign_a = '-'; $class_td_a .= ' line_deleted'; $class_line_number_a = ' line_num_deleted'; }
-							if (!empty($TVal['line_added'])) { $sign_b = '+'; $class_td_b .= ' line_added';  	$class_line_number_b = ' line_num_added'; }
-							
-							if (empty($TVal['a'])) { $class_line_number_a .= ' empty_cell'; $class_td_a .= ' empty_cell'; }
-							if (empty($TVal['b'])) { $class_line_number_b .= ' empty_cell'; $class_td_b .= ' empty_cell'; }
-							
-							$str .= '<tr>';
-							$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'"><span class="sign" data-line-sign="'.$sign_a.'"></span><span class="code_line">'.$TVal['a'].'</span></td>';
-							$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'"><span class="sign" data-line-sign="'.$sign_b.'"></span><span class="code_line">'.$TVal['b'].'</span></td>';
-							$str .= '</tr>';
-						}
-
+						$class_line_number_a = '';
+						$class_td_a = 'branch_a';
+						$class_line_number_b = '';
+						$class_td_b = 'branch_b';
+						
+						$sign_a = '';
+						$sign_b = '';
+						
+						if (!empty($TVal['line_deleted'])) { $sign_a = '-'; $class_td_a .= ' line_deleted'; $class_line_number_a = ' line_num_deleted'; }
+						if (!empty($TVal['line_added'])) { $sign_b = '+'; $class_td_b .= ' line_added';  	$class_line_number_b = ' line_num_added'; }
+						
+						if (empty($TVal['a'])) { $class_line_number_a .= ' empty_cell'; $class_td_a .= ' empty_cell'; }
+						if (empty($TVal['b'])) { $class_line_number_b .= ' empty_cell'; $class_td_b .= ' empty_cell'; }
+						
+						$str .= '<tr>';
+						$str .= '<td class="line_number'.$class_line_number_a.'" data-line-number="'.$TVal['line_number_a'].'" ></td><td class="'.$class_td_a.'"><span class="sign" data-line-sign="'.$sign_a.'"></span><span class="code_line">'.$TVal['a'].'</span></td>';
+						$str .= '<td class="line_number separate_line'.$class_line_number_b.'" data-line-number="'.$TVal['line_number_b'].'" ></td><td class="'.$class_td_b.'"><span class="sign" data-line-sign="'.$sign_b.'"></span><span class="code_line">'.$TVal['b'].'</span></td>';
+						$str .= '</tr>';
 					}
-					
-					if ($nb_sub_title == $i) $str .= '<tr class="diff_sub_title_end"><td colspan="1" class="line_number">&nbsp;</td><td colspan="3">&nbsp;</td></tr>';
-					$str .= '</tbody><tfooter></tfooter></table>';
-					$str .= '</div>';
+
 				}
+				
+				if ($nb_sub_title == $i) $str .= '<tr class="diff_sub_title_end"><td colspan="1" class="line_number">&nbsp;</td><td colspan="3">&nbsp;</td></tr>';
+				$str .= '</tbody><tfooter></tfooter></table>';
+				$str .= '</div>';
 			}
+		}
+
 		$str .= '</div>';
 		$THtml[] = $str;
 	}
@@ -329,14 +334,9 @@ function _printTLine(&$THtml, &$TLine)
 	unset($str, $TLine);
 }
 
-function _getAllSubDirGitedByDir()
+function _getAllSubDirGited()
 {
-	$TDir = array('/var/www/html/dolibarr/');
-	return _getAllSubDirGited($TDir);
-}
-
-function _getAllSubDirGited($TDir)
-{
+	$TDir = unserialize(TAB_GIT_DIR_LOCATE);
 	$TGitDir = array();
 	
 	foreach ($TDir as $dir)
@@ -346,10 +346,10 @@ function _getAllSubDirGited($TDir)
 		foreach ($TSubDir as $sub_dir)
 		{
 			if ($sub_dir == '.' || $sub_dir == '..') continue;
-			if (is_dir($dir.$sub_dir))
+			$fullpath = $dir.'/'.$sub_dir; 
+			if (is_dir($fullpath) && is_dir($fullpath.'/.git'))
 			{
-				// TODO check si le dossier est bien gité
-				$TGitDir[$sub_dir] = $dir.$sub_dir;
+				$TGitDir[$sub_dir] = $fullpath;
 			}
 		}	
 	}

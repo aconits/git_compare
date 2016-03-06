@@ -43,6 +43,10 @@ body {
 	top: 0;
 }
 
+#test {
+	display:none;
+}
+
 #pre_content {
 	margin-bottom:25px;
 }
