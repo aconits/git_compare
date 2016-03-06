@@ -1,12 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
 	request(addSelectDepotToHtml, 'action=getTDepot');
-	// TODO ajouter l'écoute sur le bt Diff
-	document.getElementById('test').addEventListener('click', function() {
-		var args = 'action=test&depot='+document.getElementById('depot').value;
-		args += '&branch_a='+document.getElementById('branch_a').value;
-		args += '&branch_b='+document.getElementById('branch_b').value;
-		request(showDiff, args);
-	});
 });
 
 function request(callback, args) 
@@ -30,9 +23,10 @@ function addSelectDepotToHtml(TDepot)
 	TDepot = JSON.parse(TDepot);
 	
 	var i;
-	var target_div = document.getElementById('depot');
+	var target_div = document.getElementById('content_depot');
 	var select = document.createElement('select');
 	select.name = 'depot';
+	select.id = 'depot';
 	select.onchange = function() { request(fillSelectBranch, 'action=getTBranch&depot='+this.value); };
 	var option = document.createElement('option');
 	select.appendChild(option);
@@ -76,6 +70,22 @@ function fillSelectBranch(TBranch)
 	
 	branch_a.appendChild(fragment);
 	branch_b.appendChild(clone);
+}
+
+function test()
+{
+	var args = 'action=test&depot='+document.getElementById('depot').value;
+	args += '&branch_a='+document.getElementById('branch_a').value;
+	args += '&branch_b='+document.getElementById('branch_b').value;
+	request(showDiff, args);
+}
+
+function execDiff()
+{
+	var args = 'action=execDiff&depot='+document.getElementById('depot').value;
+	args += '&branch_a='+document.getElementById('branch_a').value;
+	args += '&branch_b='+document.getElementById('branch_b').value;
+	request(showDiff, args);
 }
 
 function showDiff(THtml)

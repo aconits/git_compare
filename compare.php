@@ -34,7 +34,7 @@ switch ($action)
 	case 'execDiff':
 		$THtml = '';
 		$file = _createDiffFile($_POST['depot'], $_POST['branch_a'], $_POST['branch_b']);
-		_readDiffFile($THtml, $file);
+		if (!empty($file)) _readDiffFile($THtml, $file);
 		echo json_encode($THtml);
 	
 	case 'test':
@@ -64,7 +64,7 @@ function _getTBranch($depot)
 	{
 		$default = 0;
 		if ($branch_name[0] == '*') $default = 1;
-		$TBranch[] = array('branch_name' => $branch_name, 'default' => $default);
+		$TBranch[] = array('branch_name' => trim($branch_name, ' *'), 'default' => $default);
 	}
 
 	return $TBranch;
@@ -72,8 +72,12 @@ function _getTBranch($depot)
 
 function _createDiffFile($depot, $branch_a, $branch_b)
 {
-	//TODO à finaliser
-	return '/var/www/html/test.diff';
+	$target = dirname(__FILE__).'/tmp/compare.diff';
+	$cmd = 'cd '.$depot.' && git diff '.$branch_a.'..'.$branch_b.' > '.$target;
+	
+	exec($cmd, $Tab);
+	return '';
+	//return '/var/www/html/test.diff';
 }
 
 function _readDiffFile(&$THtml, $srcFile = '/var/www/html/test.diff')
@@ -104,7 +108,6 @@ function _readDiffFile(&$THtml, $srcFile = '/var/www/html/test.diff')
 		{
 			$TLine[] = _getModificationOfFile($Tab, $diff_file);
 		}
-		
 		
 		_printTLine($THtml, $TLine);
 	}

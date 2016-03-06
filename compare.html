@@ -13,29 +13,25 @@
 	<h1>GIT COMPARE</h1>
 	<img id="loading" src="default.gif" />
 	<div id="pre_content">
-		<!-- select Depot will be here -->
-		<div id="depot" class="align_top">
+		<div id="content_depot" class="align_top">
 			<label>Depôt</label>
+			<!-- select Depot will be here -->
 		</div>
 		
 		<div class="align_right">
 			<label>A</label> 
-			<select id="branch_a" name="branch_a">
-				<option value="">&nbsp;</option>
-			</select>	
+			<select id="branch_a" name="branch_a"></select>	
 		</div>
 		<div class="align_top">
 			<label>..</label>
 		</div>
 		<div>
 			<label>B</label> 
-			<select id="branch_b" name="branch_b">
-				<option value="">&nbsp;</option>
-			</select>	
+			<select id="branch_b" name="branch_b"></select>	
 		</div>
 		
-		<input type="button" id="execDiff" value="Diff" />
-		<input type="button" id="test" value="test" />
+		<input type="button" id="execDiff" value="Diff" onclick="javascript:execDiff();" />
+		<input type="button" id="test" value="test" onclick="javascript:test();" />
 	</div>
 	<div id="content">
 		
