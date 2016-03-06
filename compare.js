@@ -2,8 +2,18 @@ document.addEventListener('DOMContentLoaded', function() {
 	request(addSelectDepotToHtml, 'action=getTDepot');
 });
 
-function request(callback, args) 
+function request(callback, args, show_progress) 
 {
+	if (show_progress == 1)
+	{
+		var progress_box = document.getElementById('progress');
+	    var progress_txt = document.getElementById('progress_txt');
+	    var progress_element = document.getElementById('progress_element');
+	    progress_element.value = 0;
+	    progress_txt.innerHTML = '0%';
+	    progress_box.className = 'load';
+	}
+    
 	var error = document.getElementById('error_msg');
 	var xhr = new XMLHttpRequest();
 	
@@ -12,7 +22,8 @@ function request(callback, args)
 		
 		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) 
 		{
-	        callback(xhr.responseText);
+			if (show_progress == 1) callback(xhr.responseText, progress_box, progress_txt, progress_element);
+			else callback(xhr.responseText);
 	    }
 	    else if (xhr.readyState == 4 && xhr.status == 500)
 	    {
@@ -85,7 +96,7 @@ function test()
 	var args = 'action=test&depot='+document.getElementById('depot').value;
 	args += '&branch_a='+document.getElementById('branch_a').value;
 	args += '&branch_b='+document.getElementById('branch_b').value;
-	request(showDiff, args);
+	request(showDiff, args, 1);
 }
 
 function execDiff()
@@ -93,10 +104,10 @@ function execDiff()
 	var args = 'action=execDiff&depot='+document.getElementById('depot').value;
 	args += '&branch_a='+document.getElementById('branch_a').value;
 	args += '&branch_b='+document.getElementById('branch_b').value;
-	request(showDiff, args);
+	request(showDiff, args, 1);
 }
 
-function showDiff(THtml)
+function showDiff(THtml, progress_box, progress_txt, progress_element)
 {
 	THtml = JSON.parse(THtml);
 
@@ -106,22 +117,15 @@ function showDiff(THtml)
 	
 	if (length > 0)
 	{
-		processLargeArray(content, THtml, length);
+		processLargeArray(content, THtml, length, progress_box, progress_txt, progress_element);
 	}
 }
 
 /*
  * Source : http://stackoverflow.com/questions/10344498/best-way-to-iterate-over-an-array-without-blocking-the-ui/10344560#10344560
  */
-function processLargeArray(content, THtml, length)
+function processLargeArray(content, THtml, length, progress_box, progress_txt, progress_element)
 {
-    var progress_box = document.getElementById('progress');
-    var progress_txt = document.getElementById('progress_txt');
-    var progress_element = document.getElementById('progress_element');
-    progress_element.value = 0;
-    progress_txt.innerHTML = '0%';
-    progress_box.className = 'load';
-    
     var chunk = 10;
     var index = 0;
     function doChunk() 
