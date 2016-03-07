@@ -336,9 +336,15 @@ function _printTLine(&$THtml, &$TLine)
 	unset($str, $TLine);
 }
 
-function _getAllSubDirGited()
+function _getAllSubDirGited($recursive=0, $deep=0, $TDir='')
 {
-	$TDir = unserialize(TAB_GIT_DIR_LOCATE);
+	if ($deep >= RECURSIVE_DEEP) return array();
+	if (empty($TDir))
+	{
+		$recursive = RECURSIVE_LOOP;
+		$TDir = unserialize(TAB_GIT_DIR_LOCATE);
+	}
+	
 	$TGitDir = array();
 	
 	foreach ($TDir as $dir)
@@ -347,11 +353,16 @@ function _getAllSubDirGited()
 		
 		foreach ($TSubDir as $sub_dir)
 		{
-			if ($sub_dir == '.' || $sub_dir == '..') continue;
-			$fullpath = $dir.'/'.$sub_dir; 
+			$fullpath = $dir.'/'.$sub_dir;
+			if (!is_dir($fullpath) || $sub_dir == '.' || $sub_dir == '..' || $sub_dir == '.git') continue;
 			if (is_dir($fullpath) && is_dir($fullpath.'/.git'))
 			{
 				$TGitDir[$sub_dir] = $fullpath;
+			}
+			
+			if ($recursive)
+			{
+				$TGitDir += _getAllSubDirGited(1, ++$deep, array($fullpath));
 			}
 		}	
 	}
