@@ -354,6 +354,10 @@ function _getAllSubDirGited($recursive=0, $deep=0, $TDir='')
 		foreach ($TSubDir as $sub_dir)
 		{
 			$fullpath = $dir.'/'.$sub_dir;
+			if (substr($sub_dir, -4) == '.git')
+			{
+				$TGitDir[$sub_dir] = $fullpath;
+			}
 			if (!is_dir($fullpath) || $sub_dir == '.' || $sub_dir == '..' || $sub_dir == '.git') continue;
 			if (is_dir($fullpath) && is_dir($fullpath.'/.git'))
 			{
