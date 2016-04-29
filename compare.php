@@ -131,6 +131,20 @@ function _getModificationOfFile(&$Tab, $diff_file)
 
 	foreach ($Tab as $i => &$line)
 	{
+		$substr = substr($line, 0, 3);
+		if ($substr == 'del')
+		{
+			$indice_line_modified = htmlentities($line);
+			$TRes[$title][$indice_line_modified][0]['file_deleted'] = $indice_line_modified;
+			break;
+		}
+		elseif ($substr == 'new')
+		{
+			$indice_line_modified = htmlentities($line);
+			$TRes[$title][$indice_line_modified][0]['file_added'] = $indice_line_modified;
+			break;
+		}
+		
 		if ($i <= 2) continue; // ignore
 		if (($line[0] == '-' && $line[1] == '-' && $line[2] == '-') || ($line[0] == '+' && $line[1] == '+' && $line[2] == '+')) continue;
 		
@@ -153,7 +167,7 @@ function _getModificationOfFile(&$Tab, $diff_file)
 			//TODO si le contenu de la ligne est trop long, la largeur des colonnes n'est pas respecté à l'affichage
 			$line = htmlentities($line);
 			
-			if ($line[0] == '-') // Ligne supprimée sur branch A
+			if (!empty($line[0]) && $line[0] == '-') // Ligne supprimée sur branch A
 			{
 				$line = substr($line, 1);
 				if (is_null($index_start_delete)) $index_start_delete = $index;
@@ -161,7 +175,7 @@ function _getModificationOfFile(&$Tab, $diff_file)
 				$line_number_a++;
 				$index++;
 			}
-			elseif ($line[0] == '+') // Ligne ajoutée sur branch B
+			elseif (!empty($line[0]) && $line[0] == '+') // Ligne ajoutée sur branch B
 			{
 				$line = substr($line, 1);
 				if (is_null($index_start_delete)) $index_start_delete = $index;
@@ -301,6 +315,8 @@ function _printTLine(&$THtml, &$TLine)
 				{
 					foreach ($TBranch as &$TVal)
 					{
+						if (!empty($TVal['file_deleted']) || !empty($TVal['file_added'])) break;
+						
 						$class_line_number_a = '';
 						$class_td_a = 'branch_a';
 						$class_line_number_b = '';

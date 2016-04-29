@@ -62,6 +62,47 @@ function addSelectDepotToHtml(TDepot)
 
 	fragment.appendChild(select);
 	target_div.appendChild(fragment);
+	
+	var hash = window.location.hash;
+	hash = hash.substr(1);
+	var TArg = hash.split("&");
+	for (var i in TArg)
+	{
+		var s = TArg[i].split("=");
+		if (s[0] == 'depot' && s[1].length > 0) 
+		{
+			updateDefaultSelected('depot', s[1]);
+			document.getElementById('depot').onchange();
+		}
+		
+	}
+	
+	setTimeout(function() {
+		for (var i in TArg)
+		{
+			var s = TArg[i].split("=");
+			if (s[0] == 'branch_a' || s[0] == 'branch_b' && s[1].length > 0)
+			{
+				updateDefaultSelected(s[0], s[1]);
+			}
+		}
+		
+		document.getElementById('execDiff').onclick();
+	}, 150);
+	
+}
+
+function updateDefaultSelected(target, value_to_compare)
+{
+	for (var y=0; y<document.getElementById(target).options.length; y++)
+	{
+		if (document.getElementById(target).options[y].value == value_to_compare)
+		{
+			console.log(target);
+			document.getElementById(target).options[y].defaultSelected = true;
+			break;
+		}
+	}
 }
 
 function fillSelectBranch(TBranch)
@@ -105,6 +146,8 @@ function execDiff()
 	args += '&branch_a='+document.getElementById('branch_a').value;
 	args += '&branch_b='+document.getElementById('branch_b').value;
 	request(showDiff, args, 1);
+	
+	window.location.hash = args;
 }
 
 function showDiff(THtml, progress_box, progress_txt, progress_element)
