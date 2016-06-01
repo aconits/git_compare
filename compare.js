@@ -43,7 +43,7 @@ function addSelectDepotToHtml(TDepot)
 	
 	var i;
 	var target_div = document.getElementById('content_depot');
-	var select = document.createElement('select');
+	/*var select = document.createElement('select');
 	select.name = 'depot';
 	select.id = 'depot';
 	select.onchange = function() { request(fillSelectBranch, 'action=getTBranch&depot='+this.value); };
@@ -60,7 +60,41 @@ function addSelectDepotToHtml(TDepot)
 		select.appendChild(option);
 	}
 
-	fragment.appendChild(select);
+	fragment.appendChild(select);*/
+	
+	var input = document.createElement('input');
+	//input.onchange = function() { request(fillSelectBranch, 'action=getTBranch&depot='+document.getElementById('depot-'+this.value.replace(' ', '_')).dataset.path); };
+	input.addEventListener('input', function () {
+		var option = document.getElementById('depot-'+this.value.replace(' ', '_'));
+		if (option != null) request(fillSelectBranch, 'action=getTBranch&depot='+option.dataset.path);
+	});
+	input.id = 'depot';
+	input.name = 'depot';
+	input.setAttribute('list', 'list_depot');
+	input.type = 'text';
+	
+	var datalist = document.createElement('datalist');
+	datalist.id='list_depot';
+	
+	var option = document.createElement('option');
+	datalist.appendChild(option);
+	
+	var fragment = document.createDocumentFragment();
+	
+	for (i in TDepot)
+	{
+		var option = document.createElement('option');
+		option.value = i;
+		option.setAttribute('data-path', TDepot[i]); 
+		option.text = i;
+		option.id = 'depot-'+i.replace(' ', '_');
+		
+		datalist.appendChild(option);
+	}
+
+	fragment.appendChild(input);
+	fragment.appendChild(datalist);
+	
 	target_div.appendChild(fragment);
 	
 	var hash = window.location.hash;
@@ -71,8 +105,11 @@ function addSelectDepotToHtml(TDepot)
 		var s = TArg[i].split("=");
 		if (s[0] == 'depot' && s[1].length > 0) 
 		{
-			updateDefaultSelected('depot', s[1]);
-			document.getElementById('depot').onchange();
+			var evt = document.createEvent("HTMLEvents");
+		    evt.initEvent("input", false, true);
+		    
+			input.value = s[1];
+		    input.dispatchEvent(evt);
 		}
 		
 	}
@@ -98,7 +135,6 @@ function updateDefaultSelected(target, value_to_compare)
 	{
 		if (document.getElementById(target).options[y].value == value_to_compare)
 		{
-			console.log(target);
 			document.getElementById(target).options[y].defaultSelected = true;
 			break;
 		}
@@ -142,12 +178,21 @@ function test()
 
 function execDiff()
 {
-	var args = 'action=execDiff&depot='+document.getElementById('depot').value;
+	var depot = document.getElementById('depot').value;
+	var depot_path = '';
+	var option = document.getElementById('depot-'+depot.replace(' ', '_'));
+	if (option != null) depot_path = option.dataset.path;
+	
+	var args = 'action=execDiff&depot='+depot;
+	args += '&depot_path='+depot_path;
 	args += '&branch_a='+document.getElementById('branch_a').value;
 	args += '&branch_b='+document.getElementById('branch_b').value;
-	request(showDiff, args, 1);
 	
-	window.location.hash = args;
+	if (depot.length > 0)
+	{
+		request(showDiff, args, 1);
+		window.location.hash = args;	
+	}
 }
 
 function showDiff(THtml, progress_box, progress_txt, progress_element)

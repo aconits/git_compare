@@ -34,7 +34,7 @@ switch ($action)
 		
 	case 'execDiff':
 		$THtml = '';
-		$file = _createDiffFile($_POST['depot'], $_POST['branch_a'], $_POST['branch_b']);
+		$file = _createDiffFile($_POST['depot_path'], $_POST['branch_a'], $_POST['branch_b']);
 		if (!empty($file)) _readDiffFile($THtml, $file);
 		echo json_encode($THtml);
 		break;
